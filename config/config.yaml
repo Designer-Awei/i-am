@@ -1,0 +1,151 @@
+# i-am Skill 配置文件
+
+# ============================================
+# 扎根理论引擎配置
+# ============================================
+grounding_theory:
+  # 开放性编码
+  open_coding:
+    enabled: true
+    # 标签提取提示词模板
+    prompt_template: "prompts/open_coding.prompt"
+    
+  # 主轴编码
+  axial_coding:
+    enabled: true
+    min_category_size: 3      # 最小范畴大小
+    similarity_threshold: 0.6  # 标签相似度阈值
+    
+  # 选择性编码
+  selective_coding:
+    enabled: true
+    min_saturation: 0.7       # 最小饱和度
+    max_core_traits: 10       # 最大核心特质数
+    
+  # 批量更新
+  batch_update:
+    enabled: true
+    batch_size: 10            # 累积多少次对话后更新
+    max_wait_days: 7          # 或最多等多少天
+
+# ============================================
+# ACT-R 认知架构配置
+# ============================================
+actr:
+  # 陈述性记忆
+  declarative_memory:
+    enabled: true
+    decay_rate: 0.01          # 每日衰减率
+    min_activation: 0.3       # 最小激活度
+    
+  # 程序性记忆
+  procedural_memory:
+    enabled: true
+    initial_strength: 0.8     # 初始规则强度
+    max_strength: 1.0
+    min_strength: 0.1
+    
+  # 效用学习
+  utility_learning:
+    enabled: true
+    learning_rate: 0.1        # 学习率
+    discount_factor: 0.9      # 折扣因子
+    
+  # 隐式反馈推断
+  implicit_feedback:
+    enabled: true
+    positive_patterns:
+      - pattern: "好的 | 懂了 | 明白了 | 谢谢 | 牛逼 | 可以 | 行|OK"
+        weight: 0.1
+      - pattern: "继续 | 然后呢 | 再详细点 | 还有吗"
+        weight: 0.15
+      - pattern: "运行成功 | 搞定了 | 成了 | 没问题"
+        weight: 0.2
+      - pattern: "就这样 | 明白了谢谢 | 了解"
+        weight: 0.1
+    negative_patterns:
+      - pattern: "不对 | 错了 | 不行 | 没用 | 不好"
+        weight: -0.2
+      - pattern: "换个方案 | 重新来 | 不是这个意思"
+        weight: -0.15
+      - pattern: "听不懂 | 太复杂 | 简单点"
+        weight: -0.1
+    neutral_patterns:
+      - pattern: "哦 | 嗯 | 好的吧"
+        weight: 0.0
+        
+  # 置信度衰减
+  decay:
+    enabled: true
+    daily_rate: 0.01          # 每天衰减 1%
+    min_confidence: 0.3       # 最低置信度
+    verify_threshold: 0.6     # 触发主动验证的阈值
+    
+  # 主动验证
+  active_verification:
+    enabled: true
+    max_frequency_days: 7     # 最多每 7 天问一次
+    only_low_confidence: true # 只问低置信度规则
+    polite_templates:
+      - "兄弟，有个事儿确认一下。{question} 这个理解对不？"
+      - "兄弟，我想确认下。{question} 我这么理解行不？"
+      - "兄弟，核实个事儿。{question} 是这样不？"
+
+# ============================================
+# 目标层级配置
+# ============================================
+goal_hierarchy:
+  short_term_window: 7        # 短期目标：7 天内
+  medium_term_window: 90      # 中期目标：90 天内
+  long_term_window: 365       # 长期目标：365 天内
+
+# ============================================
+# USER.md 同步配置
+# ============================================
+user_md_sync:
+  enabled: true
+  user_md_path: "~/.openclaw/workspace/USER.md"
+  backup_enabled: true
+  backup_retention_days: 30   # 保留 30 天备份
+  auto_commit: false          # 不自动提交 git
+  
+  # 合并策略
+  merge_strategy:
+    # 当扎根理论和 ACT-R 冲突时
+    conflict_resolution: "grounding_priority"  # grounding > actr
+    # 最小变更阈值（小于此值不更新）
+    min_change_threshold: 0.05
+
+# ============================================
+# 实时监控配置 (文件监控)
+# ============================================
+realtime_monitor:
+  enabled: true
+  # 批次处理触发条件
+  batch_trigger:
+    conversation_count: 10    # 每 10 次对话触发一次扎根理论
+    time_interval_minutes: 60 # 或每 60 分钟触发一次
+  # 每日复盘 (ACT-R)
+  daily_review:
+    enabled: true
+    time: "03:00"             # 每天凌晨 3:00
+    timezone: "Asia/Shanghai"
+
+# ============================================
+# 日志配置
+# ============================================
+logging:
+  level: "INFO"               # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  max_file_size_mb: 10
+  backup_count: 5
+
+# ============================================
+# 路径配置（一般不用改）
+# ============================================
+paths:
+  skill_root: "~/.openclaw/workspace/skills/i-am"
+  logs: "logs"
+  backups: "user_md_sync/backup"
+  grounding_data: "grounding_theory"
+  actr_data: "actr"

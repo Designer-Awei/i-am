@@ -1,0 +1,54 @@
+name: i-am
+version: 2.0.2
+description: Twice-daily personality analysis skill. Uses ACT-R + Grounded Theory to analyze OpenClaw sessions and auto-update USER.md. Runs at 2:30 AM & 2:30 PM via OpenClaw cron.
+author: i-am Team
+license: MIT
+repository: https://github.com/Designer-Awei/i-am
+tags:
+  - psychology
+  - user-modeling
+  - grounded-theory
+  - act-r
+  - conversation-analysis
+category: productivity
+min_openclaw_version: 2026.3.0
+dependencies:
+  - watchdog
+entry_point: scripts/install.py
+commands:
+  - name: install
+    description: Install and configure i-am (asks for mode)
+    usage: python3 scripts/install.py
+  - name: analyze
+    description: Run daily analysis manually
+    usage: python3 scripts/i_am_daily_analysis.py
+features:
+  - name: Twice-Daily Analysis
+    description: Runs at 2:30 AM & 2:30 PM via OpenClaw cron system
+  - name: ACT-R + Grounded Theory
+    description: Combined analysis in one run (ACT-R feedback + personality extraction)
+  - name: USER.md Updates
+    description: Auto-updates USER.md with personality insights
+  - name: Incremental Analysis
+    description: Only analyzes new sessions since last run
+security_notes:
+  - Reads OpenClaw session files for analysis
+  - Writes to USER.md and local data directories
+  - No external network calls or data transmission
+  - All processing stays local in user's workspace
+  - Default: twice daily at 2:30 AM & 2:30 PM (OpenClaw cron)
+examples:
+  - title: Install i-am
+    input: "python3 scripts/install.py"
+    output: "Configures twice-daily analysis (2:30 AM & 2:30 PM)"
+  - title: Run manual analysis
+    input: "python3 scripts/i_am_daily_analysis.py"
+    output: "Analyzed sessions, updated USER.md"
+changelog:
+  - version: 2.0.2
+    date: "2026-03-12"
+    changes:
+      - "Twice-daily analysis (2:30 AM & 2:30 PM)"
+      - "Default: scheduled mode (twice daily)"
+      - "ACT-R + Grounded Theory merged"
+      - "Incremental analysis (only new sessions)"
