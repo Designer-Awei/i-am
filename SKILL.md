@@ -171,7 +171,7 @@ i-am/
 
 #### 步骤 1: AI 加载用户语料
 
-**执行代码**：
+**AI 指引**：
 
 ```python
 import json
@@ -187,7 +187,7 @@ if last_analysis_file.exists():
     with open(last_analysis_file, 'r', encoding='utf-8') as f:
         last_time = datetime.fromisoformat(json.load(f)['timestamp'])
 else:
-    last_time = datetime.now() - timedelta(hours=12)
+    last_time = datetime.now() - timedelta(hours=24)  # 首次运行加载 24 小时
 
 # 扫描 sessions 提取新消息
 messages = []
@@ -198,48 +198,61 @@ for session_file in sorted(sessions_path.glob("*.jsonl"), key=lambda x: x.stat()
             if msg.get('type') != 'message' or msg.get('message', {}).get('role') != 'user':
                 continue
             
-            # 时间过滤
             msg_time = datetime.fromisoformat(msg['timestamp'].replace('Z', '+00:00')).replace(tzinfo=None)
             if msg_time <= last_time:
                 continue
             
-            # 提取文本并过滤系统消息
-            text = "".join([item.get('text', '') for item in msg['message']['content'] if item.get('type') == 'text']).strip()
+            # 提取文本
+            text = "".join([item.get('text', '') for item in msg['message']['content'] if isinstance(item, dict) and item.get('type') == 'text']).strip()
             
-            # 过滤纯系统消息
-            if not text:
-                continue
-            if text.startswith('[cron:'):
-                continue
-            if text.startswith('Read HEARTBEAT'):
-                continue
-            if text.startswith('A scheduled reminder'):
+            # AI 自主判断：过滤系统消息
+            if not text or text.startswith('[cron:') or text.startswith('Read HEARTBEAT') or text.startswith('A scheduled'):
                 continue
             
-            # 提取 Conversation info 中的真实消息内容
+            # AI 自主发现：Conversation info 中包含真实用户发言
+            # 示例格式：
+            # Conversation info (untrusted metadata):
+            # ```json
+            # {"sender": "UserName", "timestamp": "..."}
+            # ```
+            # [message_id: xxx] UserName：真实消息内容
             if 'Conversation info' in text:
+                # AI 需要：
+                # 1. 识别发送者（UserName）
+                # 2. 编写正则表达式提取真实内容
+                # 3. 验证发送者是当前用户
+                # 4. 提取消息内容（长度>10 字）
                 import re
-                # 格式：[message_id: xxx] 章伟伟：消息内容
+                # 示例正则（AI 可根据实际格式调整）：
                 match = re.search(r'\[message_id:[^\]]+\]\s*\n?([^:]+):(.+?)(?=\n\n|\Z)', text, re.DOTALL)
                 if match:
                     sender = match.group(1).strip()
                     content = match.group(2).strip()
-                    if sender == '章伟伟' and len(content) > 10:
+                    # AI 自主判断：发送者是否匹配当前用户
+                    if sender in ['章伟伟', 'awei', '用户'] and len(content) > 10:
                         text = content
                     else:
                         continue
                 else:
+                    # AI 应尝试其他正则或格式
                     continue
             
             messages.append({'text': text, 'timestamp': msg_time})
 
-# 设置上限（避免饱和度过低）
+# 设置上限
 if len(messages) > 50:
-    messages = messages[-50:]  # 只处理最近 50 条
+    messages = messages[-50:]
     print(f"⚠️ 消息过多，只处理最近 50 条")
 
 print(f"✅ 加载到 {len(messages)} 条新消息")
 ```
+
+**AI 注意事项**：
+- ✅ 首次运行时，sessions 目录下可能已有历史对话
+- ✅ Conversation info 格式中包含真实用户发言，需要提取
+- ✅ 不同 IM 渠道的消息格式可能不同，AI 应自主调整正则
+- ✅ 提取后验证发送者是当前用户（不是系统通知）
+- ✅ 消息内容应>10 字，避免太短的无意义消息
 
 ---
 
