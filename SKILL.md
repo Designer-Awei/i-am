@@ -383,14 +383,17 @@ core_traits = dict(sorted(core_traits.items(),
 
 ---
 
-#### 步骤 3: AI 生成预览文件
+#### 步骤 3: AI 生成预览文件（首次运行作为附加章节）
 
 **执行代码**：
 
 ```python
 from pathlib import Path
+from datetime import datetime
 
 user_md_path = Path.home() / ".openclaw" / "workspace" / "USER.md"
+temp_dir = skill_root / "temp"
+temp_dir.mkdir(parents=True, exist_ok=True)
 
 # 读取当前 USER.md
 if user_md_path.exists():
@@ -399,37 +402,102 @@ if user_md_path.exists():
 else:
     old_content = "# USER.md - About Your Human\n\n## Context\n\n"
 
-# 移除旧的人格特质部分
-if "## 🧠 人格特质" in old_content:
-    content = old_content.split("## 🧠 人格特质")[0]
+# 首次运行：人格特质作为附加章节（不覆盖原内容）
+# 后续运行：替换旧的人格特质章节
+if "## 🧠 人格特质 (i-am 动态分析)" in old_content:
+    # 后续运行：替换旧章节
+    content = old_content.split("## 🧠 人格特质 (i-am 动态分析)")[0]
 else:
-    content = old_content
+    # 首次运行：保留原内容，附加新章节
+    content = old_content.rstrip() + "\n"
 
-# 生成新的人格特质
+# 生成新的人格特质章节
 dynamic = "\n## 🧠 人格特质 (i-am 动态分析)\n\n"
 for trait, data in core_traits.items():
     emoji = {"core": "🔴", "secondary": "🟡", "emerging": "🟢"}.get(data.get('level'), '🟢')
-    dynamic += f"- {emoji} **{trait}**: {data['value']} (饱和度：{data['saturation']:.0%})\n"
+    dynamic += f"- {emoji} **{trait}**: {data['value']}\n"
+    dynamic += f"   饱和度：{data['saturation']:.0%} ({data['change']})\n"
+    dynamic += f"   置信度：{data['confidence']:.0%}\n"
+    if 'total_count' in data:
+        dynamic += f"   语料频次：{data['total_count']}次\n"
+    dynamic += f"\n"
 
-# 保存到 temp/USER.md（预览文件，用户未确认）
-temp_dir = skill_root / "temp"
-temp_dir.mkdir(parents=True, exist_ok=True)
+# 保存到 temp/USER.md（预览文件，待用户审核）
 preview_file = temp_dir / "USER.md"
-
 with open(preview_file, 'w', encoding='utf-8') as f:
-    f.write(content.rstrip() + "\n" + dynamic + "\n")
+    f.write(content + dynamic + "\n")
 
 print(f"✅ 预览已保存到：{preview_file}")
 ```
 
-**注意**：
-- ✅ 预览文件存在 `temp/USER.md`
-- ❌ **此时不备份到 CHANGELOG/**
-- ⏳ 等待用户确认
+---
+
+#### 步骤 4: AI 汇报执行进展（必须严格执行）
+
+**汇报规范**（AI 必须严格遵守）：
+
+AI 必须按以下格式向用户汇报执行进展：
+
+```
+📊 i-am Skill 执行进展汇报
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[✅/⏳] 语料收集区间｜YYYY-MMDD-HHMM～YYYY-MMDD-HHMM
+[✅/⏳] 语料收集数量｜共收集到 xx 条有效语料
+[✅/⏳] 技能运行情况｜共涌现 xx 个标签，聚类为 xx 个类别，识别出 xx 个特质（新增 x 个特质）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 更新后 USER.md 完整内容如下（待审阅）：
+
+*temp/USER.md 完整内容*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 请审核预览内容，确认是否更新 USER.md？
+回复"确认"、"推送"、"是"或"ok"确认更新
+回复"取消"、"否"或"不更新"取消
+```
+
+**执行代码**：
+
+```python
+from datetime import datetime
+
+# 生成汇报内容
+report = f"""
+📊 i-am Skill 执行进展汇报
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[✅] 语料收集区间｜{last_time.strftime('%Y-%m-%d-%H%M')}～{datetime.now().strftime('%Y-%m-%d-%H%M')}
+[✅] 语料收集数量｜共收集到 {len(messages)} 条有效语料
+[✅] 技能运行情况｜共涌现 {len(open_codes)} 个标签，聚类为 {len(axial_clusters)} 个类别，识别出 {len(core_traits)} 个特质
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 更新后 USER.md 完整内容如下（待审阅）：
+
+```markdown
+{open(preview_file, 'r', encoding='utf-8').read()}
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 请审核预览内容，确认是否更新 USER.md？
+回复"确认"、"推送"、"是"或"ok"确认更新
+回复"取消"、"否"或"不更新"取消
+"""
+
+print(report)
+```
+
+**AI 必须遵守**：
+- ✅ **必须发送 temp/USER.md 文件给用户审核**（使用当前 IM 渠道的文件发送功能）
+- ✅ **必须按汇报规范格式输出进展**
+- ✅ **时间格式**：YYYY-MMDD-HHMM（如：2026-03-13-1430）
+- ✅ **首次运行**：人格特质作为附加章节（不覆盖原 USER.md 内容）
+- ✅ **后续运行**：替换旧的人格特质章节
+- ✅ **不要只输出文字**，必须发送实际文件
 
 ---
 
-#### 步骤 4: AI 根据 IM 渠道发送预览文件
+#### 步骤 5: AI 根据 IM 渠道发送预览文件
 
 **AI 自主决策流程**：
 
@@ -478,7 +546,7 @@ print(f"✅ 预览已保存到：{preview_file}")
 
 ---
 
-#### 步骤 5: AI 根据用户确认执行
+#### 步骤 6: AI 根据用户确认执行
 
 **用户回复包含"确认"、"推送"、"是"、"ok"**：
 
