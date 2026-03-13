@@ -88,41 +88,39 @@ i-am/
 **用户回复 "2" 或 "手动"**：
 1. AI 回复：`✅ 手动模式已配置，需要时告诉我"运行 i-am 分析"`
 
-#### AI 创建必要文件夹并备份初始 USER.md
+#### AI 创建必要文件夹和 ChangeLog.md
 
 **执行代码**：
 
 ```python
 from pathlib import Path
 from datetime import datetime
-import shutil
 
 skill_root = Path.home() / ".openclaw" / "workspace" / "skills" / "i-am"
 user_md_path = Path.home() / ".openclaw" / "workspace" / "USER.md"
 
-# 步骤 1: 创建 CHANGELOG 文件夹（用于备份 USER.md 历史版本）
-changelog_dir = skill_root / "CHANGELOG"
-changelog_dir.mkdir(parents=True, exist_ok=True)
-print(f"✅ 已创建文件夹：{changelog_dir}")
-
-# 步骤 2: 创建 temp 文件夹（用于存储临时文件）
+# 步骤 1: 创建 temp 文件夹（用于存储临时文件）
 temp_dir = skill_root / "temp"
 temp_dir.mkdir(parents=True, exist_ok=True)
 print(f"✅ 已创建文件夹：{temp_dir}")
 
-# 步骤 3: 备份当前 USER.md（初始版本）
-if user_md_path.exists():
-    timestamp = datetime.now().strftime('%Y%m%d-%H%M')
-    backup_file = changelog_dir / f"USER-{timestamp}-initial.md"
-    shutil.copy2(user_md_path, backup_file)
-    print(f"📁 已备份初始 USER.md: {backup_file.name}")
+# 步骤 2: 创建 ChangeLog.md（人格特质更新日志）
+changelog_file = skill_root / "ChangeLog.md"
+if not changelog_file.exists():
+    header = """# i-am Skill ChangeLog
+
+> 人格特质更新日志 | 自动生成
+
+---
+
+## 更新记录
+
+"""
+    with open(changelog_file, 'w', encoding='utf-8') as f:
+        f.write(header)
+    print(f"✅ 已创建 ChangeLog.md: {changelog_file}")
 else:
-    # 创建空的初始文件
-    timestamp = datetime.now().strftime('%Y%m%d-%H%M')
-    backup_file = changelog_dir / f"USER-{timestamp}-initial.md"
-    with open(backup_file, 'w', encoding='utf-8') as f:
-        f.write("# USER.md - Initial Backup\n\n(首次安装时的空备份)\n")
-    print(f"📁 已创建初始 USER.md 备份：{backup_file.name}")
+    print(f"ℹ️  ChangeLog.md 已存在")
 ```
 
 **文件夹说明**：
