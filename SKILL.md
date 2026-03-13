@@ -30,9 +30,6 @@ i-am/
 ├── SKILL.md              # 本文件（AI 指令）
 ├── clawhub.yaml          # ClawHub 配置
 ├── ChangeLog.md          # 人格特质更新日志（配置阶段创建）
-├── README.md             # 英文版说明
-├── README.zh-CN.md       # 中文版说明
-├── .gitignore            # Git 忽略规则
 └── temp/                 # 临时目录（运行时自动创建）
     ├── USER.md           # 预览文件（待用户审核）
     └── last_analysis.json # 时间戳
@@ -41,7 +38,6 @@ i-am/
 **说明**：
 - `temp/` 目录和文件在首次运行时自动创建
 - `ChangeLog.md` 在配置阶段自动创建（记录每次更新）
-- `README.md` 和 `README.zh-CN.md` 提供双语说明
 
 ---
 
