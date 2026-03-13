@@ -1,7 +1,7 @@
 ---
 name: i-am
 version: 4.0.1
-description: Zero-config personality analysis. All-in-one SKILL.md with embedded code. AI-guided installation and IM-adaptive file sending.
+description: Simple personality analysis. Consolidated SKILL.md with embedded code. AI-guided installation and IM-adaptive file sending.
 license: MIT
 ---
 
