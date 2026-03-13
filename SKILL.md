@@ -306,14 +306,12 @@ for cat, labels in axial_clusters.items():
     if cat not in historical_traits:
         saturation = min(saturation, 0.7)  # 初次最高 0.7
     
-    # 置信度更新规则（不新增文件，内存计算）
     confidence = saturation
     if cat in historical_traits:  # 有历史记录
         old_value = historical_traits[cat].get('value', '')
         old_confidence = historical_traits[cat].get('confidence', 0.5)
         
         if top_label == old_value:
-            # 一致：提升置信度
             confidence = min(0.95, old_confidence + 0.05)
         else:
             # 冲突：新说法权重更高
@@ -363,18 +361,11 @@ core_traits = dict(sorted(core_traits.items(),
 输出：6 个核心特质（<7 个，符合规则）
 ```
 
-**置信度规则**（AI 应遵守）：
 
-| 场景 | 置信度计算 |
 |------|-----------|
-| 首次分析 | `置信度 = 饱和度` |
-| 与历史一致 | `新置信度 = 旧置信度 + 0.05` |
-| 与历史冲突 | `新置信度 = max(0.6, 饱和度)`（新说法权重高） |
-| 用户确认 | `置信度 +0.10`（最高 0.95） |
 
 **AI 注意**：
 - ❌ 不要预定义标签
-- ✅ 置信度低于 0.5 的特质标注为"待验证"
 - ✅ 新旧冲突时，优先采用新说法（用户可能改变了）
 - ✅ 输出时应显示饱和度变化（如 `+5%`、`-12%`）
 
@@ -414,7 +405,6 @@ for trait, data in core_traits.items():
     emoji = {"core": "🔴", "secondary": "🟡", "emerging": "🟢"}.get(data.get('level'), '🟢')
     dynamic += f"- {emoji} **{trait}**: {data['value']}\n"
     dynamic += f"   饱和度：{data['saturation']:.0%} ({data['change']})\n"
-    dynamic += f"   置信度：{data['confidence']:.0%}\n"
     if 'total_count' in data:
         dynamic += f"   语料频次：{data['total_count']}次\n"
     dynamic += f"\n"
@@ -586,7 +576,6 @@ new_entry = f"### {timestamp}\n\n"
 new_entry += f"**更新时间**: {timestamp}\n\n"
 new_entry += "**人格特质**:\n\n"
 for trait, data in core_traits.items():
-    new_entry += f"- {trait}: {data['value']} (饱和度：{data['saturation']:.0%}, 置信度：{data['confidence']:.0%})\n"
 new_entry += f"\n---\n\n"
 
 # 插入到更新记录开头
@@ -606,7 +595,6 @@ timestamp_file = skill_root / "temp" / "last_analysis.json"
 with open(timestamp_file, 'w', encoding='utf-8') as f:
     json.dump({"timestamp": datetime.now().isoformat()}, f)
 
-# 4. 用户确认后提升置信度
 for trait in core_traits.values():
     trait['confidence'] = min(0.95, trait.get('confidence', 0.5) + 0.10)
 
