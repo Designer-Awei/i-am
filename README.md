@@ -1,6 +1,6 @@
 # i-am Skill v4.0.9
 
-> **I am You, You am I** - Zero-config personality analysis using Grounded Theory
+> **I am You, You am I** - personality analysis using Grounded Theory
 
 **[🇨🇳 中文版](README.zh-CN.md)** | **[🌏 English](README.md)**
 
@@ -241,7 +241,6 @@ AI: 📊 Loading user messages...
 - ✅ Minimalist architecture (SKILL.md + clawhub.yaml only)
 - ✅ All code embedded in SKILL.md
 - ✅ IM-adaptive file sending
-- ✅ Zero-config installation
 
 ---
 

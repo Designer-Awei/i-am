@@ -243,11 +243,30 @@ for code in open_codes:
         axial_clusters[cat] = {}
     axial_clusters[cat][code['code']] = axial_clusters[cat].get(code['code'], 0) + 1
 
-# 选择性编码：提取核心特质（含置信度计算）
+# 选择性编码：提取核心特质（含范畴新增规则）
 core_traits = {}
+
+# 规则 1: 初次运行建议生成 3-5 个特质（太少不全面，太多不聚焦）
+# 规则 2: 每个范畴至少有 2 个编码或总频次>=消息数的 10% 才保留
+# 规则 3: 最多保留 7 个特质（按频次排序，取前 7 个）
+
 for cat, labels in axial_clusters.items():
+    total_count = sum(labels.values())
+    
+    # 判断是否新增/保留这个范畴
+    if len(labels) < 2 and total_count < len(messages) * 0.1:
+        # 范畴太小，跳过
+        continue
+    
     top_label, count = max(labels.items(), key=lambda x: x[1])
+    
+    # 初始饱和度计算：0.5 + (频次/总消息数)*0.5
+    # 示例：4 条消息中有 2 条提到 → 饱和度 = 0.5 + (2/4)*0.5 = 0.75
     saturation = min(0.95, 0.5 + (count / max(len(messages), 1)) * 0.5)
+    
+    # 初次运行饱和度修正（避免单次分析饱和度过高）
+    if cat not in historical_traits:
+        saturation = min(saturation, 0.7)  # 初次最高 0.7
     
     # 置信度更新规则（不新增文件，内存计算）
     confidence = saturation
@@ -269,6 +288,41 @@ for cat, labels in axial_clusters.items():
         "level": "core" if confidence >= 0.7 else "secondary",
         "change": f"+{int((confidence-saturation)*100)}%" if confidence > saturation else f"{int((confidence-saturation)*100)}%"
     }
+
+# 按频次排序，最多保留 7 个特质
+core_traits = dict(sorted(core_traits.items(), 
+                          key=lambda x: sum(axial_clusters[x[0]].values()), 
+                          reverse=True)[:7])
+```
+
+**范畴新增规则**（AI 必须遵守）：
+
+| 规则 | 说明 | 示例 |
+|------|------|------|
+| **最小频次** | 范畴总频次 >= 消息数×10% | 20 条消息 → 至少 2 条提到 |
+| **最小多样性** | 范畴内至少 2 个不同编码 | "决策风格" 有"行动导向"+"谨慎思考" |
+| **初次上限** | 初次运行最多 5 个特质 | 避免太多不聚焦 |
+| **历史上限** | 有历史记录最多 7 个特质 | 保持稳定性 |
+| **初次饱和度** | 初次分析饱和度最高 0.7 | 避免单次分析过高 |
+| **历史饱和度** | 有历史记录按实际计算 | 可超过 0.7 |
+
+**示例**：
+```
+输入：20 条用户消息
+开放性编码：提取 35 个编码
+主轴编码：聚类为 8 个范畴
+
+选择性编码（应用规则）：
+1. 决策风格：总频次 8 (40%) ✅ 保留
+2. 沟通风格：总频次 6 (30%) ✅ 保留
+3. 技术取向：总频次 5 (25%) ✅ 保留
+4. 方法论：总频次 4 (20%) ✅ 保留
+5. 情感表达：总频次 3 (15%) ✅ 保留
+6. 学习风格：总频次 2 (10%) ✅ 保留（刚好达标）
+7. 工作习惯：总频次 1 (5%)  ❌ 跳过（<10%）
+8. 社交偏好：总频次 1 (5%)  ❌ 跳过（<10%）
+
+输出：6 个核心特质（<7 个，符合规则）
 ```
 
 **置信度规则**（AI 必须遵守）：
