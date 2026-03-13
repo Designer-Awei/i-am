@@ -432,6 +432,42 @@ print(f"✅ 预览已保存到：{preview_file}")
 
 ---
 
+#### 步骤 3.5: AI 创建 ChangeLog.md（配置阶段自动执行）
+
+**执行时机**：用户完成安装配置后，AI 自动创建
+
+**执行代码**：
+
+```python
+from pathlib import Path
+from datetime import datetime
+
+skill_root = Path.home() / ".openclaw" / "workspace" / "skills" / "i-am"
+changelog_file = skill_root / "ChangeLog.md"
+
+# 创建 ChangeLog.md 空文件（如果不存在）
+if not changelog_file.exists():
+    # 写入文件头
+    header = f"""# i-am Skill ChangeLog
+
+> 人格特质更新日志 | 自动生成
+
+---
+
+## 更新记录
+
+"""
+    with open(changelog_file, 'w', encoding='utf-8') as f:
+        f.write(header)
+    print(f"✅ 已创建 ChangeLog.md: {changelog_file}")
+else:
+    print(f"ℹ️  ChangeLog.md 已存在")
+```
+
+**文件位置**：`/Users/awei/.openclaw/workspace/skills/i-am/ChangeLog.md`
+
+---
+
 #### 步骤 4: AI 汇报执行进展（必须严格执行）
 
 **汇报规范**（AI 必须严格遵守）：
@@ -552,38 +588,102 @@ print(report)
 
 ```python
 from datetime import datetime
+from pathlib import Path
 
-# 读取预览文件
-preview_file = skill_root / "temp" / "USER.md"
-with open(preview_file, 'r', encoding='utf-8') as f:
-    new_content = f.read()
-
-# 覆盖写入 USER.md
+# 1. 仅更新 USER.md 的人格特质章节
 user_md_path = Path.home() / ".openclaw" / "workspace" / "USER.md"
+preview_file = skill_root / "temp" / "USER.md"
+
+with open(preview_file, 'r', encoding='utf-8') as f:
+    preview_content = f.read()
+
+# 读取当前 USER.md
+with open(user_md_path, 'r', encoding='utf-8') as f:
+    current_content = f.read()
+
+# 仅替换人格特质章节（保留其他内容）
+if "## 🧠 人格特质 (i-am 动态分析)" in current_content:
+    # 替换旧章节
+    parts = current_content.split("## 🧠 人格特质 (i-am 动态分析)")
+    new_content = parts[0] + "## 🧠 人格特质 (i-am 动态分析)"
+    # 从预览文件中提取人格特质章节
+    if "## 🧠 人格特质 (i-am 动态分析)" in preview_content:
+        trait_section = preview_content.split("## 🧠 人格特质 (i-am 动态分析)")[1]
+        new_content += trait_section
+    else:
+        new_content += preview_content.split("## 🧠 人格特质 (i-am 动态分析)")[1] if "## 🧠 人格特质 (i-am 动态分析)" in preview_content else ""
+else:
+    # 首次添加人格特质章节
+    new_content = current_content.rstrip() + "\n\n"
+    if "## 🧠 人格特质 (i-am 动态分析)" in preview_content:
+        trait_section = preview_content.split("## 🧠 人格特质 (i-am 动态分析)")[1]
+        new_content += "## 🧠 人格特质 (i-am 动态分析)" + trait_section
+
 with open(user_md_path, 'w', encoding='utf-8') as f:
     f.write(new_content)
 
-# 更新时间戳
+# 2. 更新 ChangeLog.md
+changelog_file = skill_root / "ChangeLog.md"
+timestamp = datetime.now().strftime('%Y-%m-%d-%H%M')
+
+# 读取 ChangeLog.md
+if changelog_file.exists():
+    with open(changelog_file, 'r', encoding='utf-8') as f:
+        changelog_content = f.read()
+else:
+    changelog_content = "# i-am Skill ChangeLog\n\n> 人格特质更新日志 | 自动生成\n\n---\n\n## 更新记录\n\n"
+
+# 生成新的更新记录
+new_entry = f"### {timestamp}\n\n"
+new_entry += f"**更新时间**: {timestamp}\n\n"
+new_entry += "**人格特质**:\n\n"
+for trait, data in core_traits.items():
+    new_entry += f"- {trait}: {data['value']} (饱和度：{data['saturation']:.0%}, 置信度：{data['confidence']:.0%})\n"
+new_entry += f"\n---\n\n"
+
+# 插入到更新记录开头
+if "## 更新记录" in changelog_content:
+    parts = changelog_content.split("## 更新记录")
+    changelog_content = parts[0] + "## 更新记录\n\n" + new_entry + parts[1]
+else:
+    changelog_content += new_entry
+
+with open(changelog_file, 'w', encoding='utf-8') as f:
+    f.write(changelog_content)
+
+print(f"✅ ChangeLog.md 已更新：{changelog_file}")
+
+# 3. 更新时间戳
 timestamp_file = skill_root / "temp" / "last_analysis.json"
 with open(timestamp_file, 'w', encoding='utf-8') as f:
     json.dump({"timestamp": datetime.now().isoformat()}, f)
 
-# 备份到 CHANGELOG/
-changelog_dir = skill_root / "CHANGELOG"
-changelog_dir.mkdir(parents=True, exist_ok=True)
-backup_file = changelog_dir / f"USER-{datetime.now().strftime('%Y%m%d-%H%M')}.md"
-with open(backup_file, 'w', encoding='utf-8') as f:
-    f.write(new_content)
-
-# 用户确认后提升置信度
+# 4. 用户确认后提升置信度
 for trait in core_traits.values():
     trait['confidence'] = min(0.95, trait.get('confidence', 0.5) + 0.10)
 
-print("✅ USER.md 已更新")
-print(f"📁 已备份到：{backup_file.name}")
+print("✅ USER.md 已更新（仅人格特质章节）")
 ```
 
-**AI 回复**：`✅ USER.md 已更新，{len(core_traits)} 个人格特质已写入。备份文件：CHANGELOG/USER-20260313-1805.md`
+**AI 回复**（响应规范）：
+
+```
+[✅] ChangeLog 日志已更新，更新时间 2026-03-14-1057
+[✅] USER.md 已更新，当前版本（v1）
+```
+
+**响应规范**（AI 必须严格遵守）：
+
+当用户审阅通过后，AI 必须按以下格式回复：
+
+```
+[✅] ChangeLog 日志已更新，更新时间 YYYY-MM-DD-HHMM
+[✅] USER.md 已更新，当前版本（vX）
+```
+
+**说明**：
+- `YYYY-MM-DD-HHMM`: 更新时间戳（如：2026-03-14-1057）
+- `vX`: USER.md 版本号（首次为 v1，后续每次更新 +1）
 
 **用户回复包含"取消"、"否"、"不更新"**：
 
