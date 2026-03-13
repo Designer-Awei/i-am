@@ -133,7 +133,7 @@ else:
 
 | 文件夹 | 用途 | 创建时机 |
 |--------|------|---------|
-| `CHANGELOG/` | 备份 USER.md 历史版本 | 首次安装时创建 |
+| `ChangeLog.md` | 备份 USER.md 历史版本 | 首次安装时创建 |
 | `temp/` | 存储临时文件（预览、时间戳） | 首次安装时创建 |
 
 **文件示例**：
@@ -141,7 +141,7 @@ else:
 i-am/
 ├── SKILL.md
 ├── clawhub.yaml
-├── CHANGELOG/
+├── ChangeLog.md
 │   ├── USER-20260313-1950-initial.md  ← 初始备份
 │   ├── USER-20260313-2030.md          ← 第一次分析后备份
 │   └── USER-20260314-0230.md          ← 定时任务备份
@@ -161,7 +161,7 @@ i-am/
 - 模式：定时模式 / 手动模式
 - Cron 任务：已配置 / 未配置
 - 下次运行：2026-03-14 02:30 / 手动触发
-- 初始备份：CHANGELOG/USER-20260313-1800-initial.md
+- 初始备份：ChangeLog.mdUSER-20260313-1800-initial.md
 
 📊 随时查看人格特质：查看当前对话的 USER.md 文件
 
@@ -576,7 +576,7 @@ print(report)
    置信度：60%
 
 📄 预览文件已发送（temp/USER.md）
-📁 当前 USER.md 已备份到：CHANGELOG/USER-20260313-1730.md
+📁 当前 USER.md 已备份到：ChangeLog.mdUSER-20260313-1730.md
 
 🤖 请审核预览内容，确认是否更新 USER.md？
 回复"确认"、"推送"、"是"或"ok"确认更新
@@ -690,7 +690,7 @@ print("✅ USER.md 已更新（仅人格特质章节）")
 
 **用户回复包含"取消"、"否"、"不更新"**：
 
-**AI 回复**：`❌ 已取消，USER.md 保持不变。备份文件已保存：CHANGELOG/USER-20260313-1730.md`
+**AI 回复**：`❌ 已取消，USER.md 保持不变。备份文件已保存：ChangeLog.mdUSER-20260313-1730.md`
 
 ---
 
@@ -704,12 +704,12 @@ print("✅ USER.md 已更新（仅人格特质章节）")
 
 **文件名格式**：
 ```
-CHANGELOG/USER-YYYYMMDD-HHMM.md
+ChangeLog.mdUSER-YYYYMMDD-HHMM.md
 ```
 
 **示例**：
 ```
-CHANGELOG/
+ChangeLog.md
 ├── USER-20260313-1730.md  # 分析前的备份
 ├── USER-20260313-1735.md  # 用户确认后的备份
 └── USER-20260314-0230.md  # 定时任务备份
@@ -719,20 +719,20 @@ CHANGELOG/
 
 **查看变更历史**：
 ```bash
-ls -lt skills/i-am/CHANGELOG/
+ls -lt skills/i-am/ChangeLog.md
 ```
 
 **对比变更**：
 ```bash
 # 对比最近两次备份
-diff skills/i-am/CHANGELOG/USER-20260313-1730.md \
-     skills/i-am/CHANGELOG/USER-20260313-1735.md
+diff skills/i-am/ChangeLog.mdUSER-20260313-1730.md \
+     skills/i-am/ChangeLog.mdUSER-20260313-1735.md
 ```
 
 **撤回更改**：
 ```bash
 # 恢复到之前的版本
-cp skills/i-am/CHANGELOG/USER-20260313-1730.md ~/.openclaw/workspace/USER.md
+cp skills/i-am/ChangeLog.mdUSER-20260313-1730.md ~/.openclaw/workspace/USER.md
 ```
 
 ---
@@ -814,7 +814,7 @@ AI: （执行步骤 1-4）
     🔴 **决策风格**: 行动导向 (68%)
     🟡 **技术取向**: 实用主义 (52%)
     
-    📁 当前 USER.md 已备份到：CHANGELOG/USER-20260313-1730.md
+    📁 当前 USER.md 已备份到：ChangeLog.mdUSER-20260313-1730.md
     
     🤖 预览文件已发送，请审核！
     
@@ -830,7 +830,7 @@ AI: （执行步骤 1-4）
 - ✅ 不需要额外 API key（使用当前会话模型）
 - ✅ 用户确认后才更新 USER.md
 - ✅ 预览文件供用户审核
-- ✅ 每次变更自动备份到 CHANGELOG/
+- ✅ 每次变更自动备份到 ChangeLog.md
 
 ---
 
