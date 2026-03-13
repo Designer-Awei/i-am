@@ -229,7 +229,7 @@ for session_file in sorted(sessions_path.glob("*.jsonl"), key=lambda x: x.stat()
                     sender = match.group(1).strip()
                     content = match.group(2).strip()
                     # AI 自主判断：发送者是否匹配当前用户
-                    if sender in ['章伟伟', 'awei', '用户'] and len(content) > 10:
+                    if sender == current_user_name and len(content) > 10:
                         text = content
                     else:
                         continue
