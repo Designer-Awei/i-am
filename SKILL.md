@@ -205,8 +205,31 @@ for session_file in sorted(sessions_path.glob("*.jsonl"), key=lambda x: x.stat()
             
             # 提取文本并过滤系统消息
             text = "".join([item.get('text', '') for item in msg['message']['content'] if item.get('type') == 'text']).strip()
-            if not text or text.startswith('[cron:') or text.startswith('Read HEARTBEAT'):
+            
+            # 过滤纯系统消息
+            if not text:
                 continue
+            if text.startswith('[cron:'):
+                continue
+            if text.startswith('Read HEARTBEAT'):
+                continue
+            if text.startswith('A scheduled reminder'):
+                continue
+            
+            # 提取 Conversation info 中的真实消息内容
+            if 'Conversation info' in text:
+                import re
+                # 格式：[message_id: xxx] 章伟伟：消息内容
+                match = re.search(r'\[message_id:[^\]]+\]\s*\n?([^:]+):(.+?)(?=\n\n|\Z)', text, re.DOTALL)
+                if match:
+                    sender = match.group(1).strip()
+                    content = match.group(2).strip()
+                    if sender == '章伟伟' and len(content) > 10:
+                        text = content
+                    else:
+                        continue
+                else:
+                    continue
             
             messages.append({'text': text, 'timestamp': msg_time})
 
