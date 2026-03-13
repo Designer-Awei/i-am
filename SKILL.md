@@ -239,8 +239,12 @@ for session_file in sorted(sessions_path.glob("*.jsonl"), key=lambda x: x.stat()
             
             messages.append({'text': text, 'timestamp': msg_time})
 
-# 设置上限
-if len(messages) > 50:
+# 初次运行不限制消息数量（充分利用历史对话建立人格模型）
+# 后续运行可限制消息数量（避免单次分析过多）
+# 如果消息过多，AI 可自主决定是否设置上限
+# 初次运行不限制，尽可能加载历史对话
+# 后续运行限制 50 条（避免单次分析过多）
+if False:  # 禁用上限
     messages = messages[-50:]
     print(f"⚠️ 消息过多，只处理最近 50 条")
 
